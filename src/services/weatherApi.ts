@@ -126,20 +126,23 @@ export function processDailyData(
 
     const weekdayShort = dateObj.toLocaleDateString('en-US', {
       weekday: 'short',
-      timeZone: timezone,
     });
     const weekdayFull = dateObj.toLocaleDateString('en-US', {
       weekday: 'long',
-      timeZone: timezone,
     });
     const formattedDate = dateObj.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      timeZone: timezone,
     });
 
     const weatherCode = daily.weather_code[index] ?? 0;
     const weatherInfo = getWeatherInfo(weatherCode);
+
+    const rawPrecipProb = daily.precipitation_probability_max[index];
+    const precipitationProbability =
+      typeof rawPrecipProb === 'number' && !Number.isNaN(rawPrecipProb)
+        ? rawPrecipProb
+        : null;
 
     return {
       date: timeStr,
@@ -151,7 +154,7 @@ export function processDailyData(
       description: weatherInfo.description,
       tempMax: daily.temperature_2m_max[index] ?? 0,
       tempMin: daily.temperature_2m_min[index] ?? 0,
-      precipitationProbability: daily.precipitation_probability_max[index] ?? 0,
+      precipitationProbability,
       precipitationSum: daily.precipitation_sum[index] ?? 0,
       uvIndexMax: daily.uv_index_max[index] ?? 0,
       windSpeedMax: daily.wind_speed_10m_max[index] ?? 0,

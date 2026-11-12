@@ -82,12 +82,12 @@ export const ForecastCards: React.FC<ForecastCardsProps> = ({ daily }) => {
                   </span>
                   <span
                     className={`font-bold ${
-                      day.precipitationProbability >= 50
+                      day.precipitationProbability !== null && day.precipitationProbability >= 50
                         ? 'text-sky-600 dark:text-sky-400'
                         : 'text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    {day.precipitationProbability}%
+                    {day.precipitationProbability !== null ? `${day.precipitationProbability}%` : 'N/A'}
                   </span>
                 </div>
               </div>

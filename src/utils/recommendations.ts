@@ -22,10 +22,14 @@ export function generateRecommendations(
   // Check 1: Umbrella / Precipitation
   // Rule: precipitation_probability_max >= 60 -> "Carry an umbrella"
   const rainDays = dailyList.filter(
-    (d) => d.precipitationProbability >= RECOMMENDATION_THRESHOLDS.PRECIPITATION_PROBABILITY_MAX
+    (d) =>
+      d.precipitationProbability !== null &&
+      d.precipitationProbability >= RECOMMENDATION_THRESHOLDS.PRECIPITATION_PROBABILITY_MAX
   );
   if (rainDays.length > 0) {
-    const dayNames = rainDays.map((d) => `${d.weekdayShort} (${d.precipitationProbability}%)`).join(', ');
+    const dayNames = rainDays
+      .map((d) => `${d.weekdayShort} (${d.precipitationProbability}%)`)
+      .join(', ');
     tips.push({
       id: 'rec-rain',
       rule: `precipitation_probability_max ≥ ${RECOMMENDATION_THRESHOLDS.PRECIPITATION_PROBABILITY_MAX}%`,
@@ -123,31 +127,46 @@ export function generateRecommendations(
 
   // Find the BEST day of the week for outdoor plans:
   // "lowest precipitation probability, ties broken by milder temperature"
-  const sortedDays = [...dailyList].sort((a, b) => {
-    // 1. Lowest precipitation probability
-    if (a.precipitationProbability !== b.precipitationProbability) {
-      return a.precipitationProbability - b.precipitationProbability;
-    }
-    // 2. Ties broken by milder temperature (closest to ideal comfort ~21°C)
-    const distA = Math.abs(a.tempMax - RECOMMENDATION_THRESHOLDS.IDEAL_COMFORT_TEMP);
-    const distB = Math.abs(b.tempMax - RECOMMENDATION_THRESHOLDS.IDEAL_COMFORT_TEMP);
-    if (distA !== distB) {
-      return distA - distB;
-    }
-    // 3. Lower max wind speed as secondary tie-breaker
-    return a.windSpeedMax - b.windSpeedMax;
-  });
+  // Exclude days where precipitationProbability is null
+  const eligibleDays = dailyList.filter(
+    (d): d is ProcessedDailyForecast & { precipitationProbability: number } =>
+      d.precipitationProbability !== null
+  );
 
-  const best = sortedDays[0];
-  const bestDay: BestOutdoorDay = {
-    date: best.date,
-    weekday: best.weekdayFull,
-    reason: `${best.precipitationProbability}% rain chance & comfortable max of ${Math.round(best.tempMax)}°C`,
-    precipProb: best.precipitationProbability,
-    tempMax: Math.round(best.tempMax),
-    tempMin: Math.round(best.tempMin),
-    condition: best.description,
-  };
+  let bestDay: BestOutdoorDay | null = null;
+
+  if (eligibleDays.length > 0) {
+    const sortedDays = [...eligibleDays].sort((a, b) => {
+      // 1. Lowest precipitation probability
+      if (a.precipitationProbability !== b.precipitationProbability) {
+        return a.precipitationProbability - b.precipitationProbability;
+      }
+      // 2. Ties broken by milder temperature (closest to ideal comfort ~21°C)
+      const distA = Math.abs(a.tempMax - RECOMMENDATION_THRESHOLDS.IDEAL_COMFORT_TEMP);
+      const distB = Math.abs(b.tempMax - RECOMMENDATION_THRESHOLDS.IDEAL_COMFORT_TEMP);
+      if (distA !== distB) {
+        return distA - distB;
+      }
+      // 3. Lower max wind speed as secondary tie-breaker
+      return a.windSpeedMax - b.windSpeedMax;
+    });
+
+    const best = sortedDays[0];
+    const isComfortable = best.tempMax >= 15 && best.tempMax <= 28;
+    const tempText = isComfortable
+      ? `comfortable max of ${Math.round(best.tempMax)}°C`
+      : `max of ${Math.round(best.tempMax)}°C`;
+
+    bestDay = {
+      date: best.date,
+      weekday: best.weekdayFull,
+      reason: `${best.precipitationProbability}% rain chance & ${tempText}`,
+      precipProb: best.precipitationProbability,
+      tempMax: Math.round(best.tempMax),
+      tempMin: Math.round(best.tempMin),
+      condition: best.description,
+    };
+  }
 
   return {
     tips,

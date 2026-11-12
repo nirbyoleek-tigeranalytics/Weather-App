@@ -199,7 +199,11 @@ export const WeatherCharts: React.FC<WeatherChartsProps> = ({ daily }) => {
                     }}
                     labelStyle={{ fontWeight: 'bold', color: '#38bdf8', marginBottom: '4px' }}
                     formatter={(value: any, name: any) => [
-                      name === 'Rain Probability (%)' ? `${value}%` : `${value} mm`,
+                      name === 'Rain Probability (%)'
+                        ? value !== null && value !== undefined
+                          ? `${value}%`
+                          : 'N/A'
+                        : `${value} mm`,
                       String(name ?? ''),
                     ]}
                   />

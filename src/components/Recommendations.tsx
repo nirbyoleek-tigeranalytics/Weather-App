@@ -70,8 +70,7 @@ export const Recommendations: React.FC<RecommendationsProps> = ({ data }) => {
                 <span>{bestDay.weekday} is the best day for outdoor plans</span>
               </h3>
               <p className="text-sm text-emerald-100/90 leading-relaxed">
-                Evaluated across the 7-day forecast with the lowest precipitation probability ({bestDay.precipProb}%)
-                and mildest comfort temperature ({bestDay.tempMax}°C max).
+                {bestDay.reason}. Evaluated across the 7-day forecast with the lowest precipitation probability.
               </p>
             </div>
 

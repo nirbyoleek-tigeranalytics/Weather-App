@@ -35,7 +35,7 @@ export interface DailyForecastData {
   weather_code: number[];
   temperature_2m_max: number[];
   temperature_2m_min: number[];
-  precipitation_probability_max: number[];
+  precipitation_probability_max: (number | null)[];
   precipitation_sum: number[];
   uv_index_max: number[];
   wind_speed_10m_max: number[];
@@ -63,7 +63,7 @@ export interface ProcessedDailyForecast {
   description: string;
   tempMax: number;
   tempMin: number;
-  precipitationProbability: number;
+  precipitationProbability: number | null;
   precipitationSum: number;
   uvIndexMax: number;
   windSpeedMax: number;
